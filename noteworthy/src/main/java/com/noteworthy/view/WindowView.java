@@ -76,6 +76,11 @@ public class WindowView {
         // === File Menu ===
         JMenu fileMenu = new JMenu("File");
 
+        // New File
+        JMenuItem newFileItem = new JMenuItem("New File");
+        newFileItem.addActionListener(e -> createNewFile());
+        fileMenu.add(newFileItem);
+
         // Open
         JMenuItem openItem = new JMenuItem("Open...");
         openItem.addActionListener(e -> openFile(window));
@@ -154,7 +159,10 @@ public class WindowView {
             }
         }
     }
+
+    private void createNewFile() {
+        editor.setText("");     // Clear editor
+        currentFile = null;     // Reset the save location
+    }
+
 }
-
-
-
