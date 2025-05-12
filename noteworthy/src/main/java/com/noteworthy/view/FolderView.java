@@ -1,5 +1,10 @@
 package com.noteworthy.view;
 
-public class FolderView {
-    
+import javax.swing.*;
+import java.awt.*;
+
+public class FolderView extends JTree {
+    public FolderView() {
+        setPreferredSize(new Dimension(150, 0)); // Fixed width
+    }
 }
