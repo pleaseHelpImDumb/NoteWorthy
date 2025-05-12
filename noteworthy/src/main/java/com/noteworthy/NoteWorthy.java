@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.noteworthy.controller.DocumentManager;
 import com.noteworthy.model.Document;
+import com.noteworthy.model.PlainTextBlock;
 
 public class NoteWorthy {
 
@@ -81,5 +82,21 @@ public class NoteWorthy {
         // 5. Make the frame visible
         frame.setVisible(true);
 
+        //test stuff
+        Document test = new Document();
+        System.out.println(test.getTitle());
+        System.out.println(test.getCursor().hasSelection());
+        test.getCursor().setSelection(0, 2);
+        System.out.println(test.getCursor().hasSelection());
+
+        PlainTextBlock tester = new PlainTextBlock();
+        System.out.println(tester.getTextContent().length() + " " + tester.getTextContent());
+        
+        tester.setContent("Hello");
+        System.out.println(tester.getTextContent().length() + " " + tester.getTextContent());
+         
+        tester.appendText("yes");
+        System.out.println(tester.getTextContent().length() + " " + tester.getTextContent());
+    
     }
 }
