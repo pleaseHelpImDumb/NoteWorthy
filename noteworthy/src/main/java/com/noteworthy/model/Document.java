@@ -137,7 +137,7 @@ public class Document {
             ContentBlock indexedBlock = blocks.get(i);
             if (indexedBlock instanceof PlainTextBlock) {
                 PlainTextBlock textBlock = (PlainTextBlock) indexedBlock;
-                documentContent = documentContent.concat(textBlock.getContent());
+                documentContent = documentContent.concat(textBlock.getTextContent());
             }
             else if (indexedBlock instanceof ImageBlock){
                 ImageBlock imgBlock = (ImageBlock) indexedBlock;
