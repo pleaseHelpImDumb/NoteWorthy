@@ -1,6 +1,8 @@
 package com.noteworthy.view;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -74,6 +76,11 @@ public class WindowView {
         // === File Menu ===
         JMenu fileMenu = new JMenu("File");
 
+        // Open
+        JMenuItem openItem = new JMenuItem("Open...");
+        openItem.addActionListener(e -> openFile(window));
+        fileMenu.add(openItem);
+
         // Save (uses remembered file)
         JMenuItem saveItem = new JMenuItem("Save");
         saveItem.addActionListener(e -> saveNoteToFile(window));
@@ -126,6 +133,25 @@ public class WindowView {
         if (option == JFileChooser.APPROVE_OPTION) {
             currentFile = fileChooser.getSelectedFile();
             saveNoteToFile(parentFrame); // reuses the same save logic
+        }
+    }
+
+    private void openFile(JFrame parentFrame) {
+        JFileChooser fileChooser = new JFileChooser();
+        int option = fileChooser.showOpenDialog(parentFrame);
+        if (option == JFileChooser.APPROVE_OPTION) {
+            currentFile = fileChooser.getSelectedFile();
+            try (BufferedReader reader = new BufferedReader(new FileReader(currentFile))) {
+                StringBuilder content = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    content.append(line).append("\n");
+                }
+                editor.setText(content.toString()); // make sure EditorView has setText()
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(parentFrame, "Error opening file.");
+                ex.printStackTrace();
+            }
         }
     }
 }
