@@ -116,7 +116,7 @@ public class WindowView {
     
             // Write to the selected file
             try (FileWriter fw = new FileWriter(currentFile)) {
-                String noteContent = editor.getText(); // EditorView must support this
+                String noteContent = editor.getText();
                 fw.write(noteContent);
                 JOptionPane.showMessageDialog(parentFrame, "File saved.");
             }
@@ -132,7 +132,7 @@ public class WindowView {
         int option = fileChooser.showSaveDialog(parentFrame);
         if (option == JFileChooser.APPROVE_OPTION) {
             currentFile = fileChooser.getSelectedFile();
-            saveNoteToFile(parentFrame); // reuses the same save logic
+            saveNoteToFile(parentFrame);
         }
     }
 
@@ -147,7 +147,7 @@ public class WindowView {
                 while ((line = reader.readLine()) != null) {
                     content.append(line).append("\n");
                 }
-                editor.setText(content.toString()); // make sure EditorView has setText()
+                editor.setText(content.toString());
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(parentFrame, "Error opening file.");
                 ex.printStackTrace();
