@@ -36,12 +36,6 @@ public class PlainTextBlock implements ContentBlock {
     }
 
     @Override
-    public void render() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'render'");
-    }
-
-    @Override
     public String getType() {
         return "[PlainText Block]";
     }

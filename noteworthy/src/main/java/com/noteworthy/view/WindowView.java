@@ -166,13 +166,16 @@ public class WindowView {
     //For optimization later, maybe cache unchanged part and only process changes or something??
     private void renderDocument(EditorView editedDoc) {
         String content = editedDoc.getText();
-        String escapedHTMLContent = escapeHTML(content).replace("\n","<br>");
-        editorController.parseTextToDocument(fileNameLabel.getText(), escapedHTMLContent);
+        
+        // First parse the raw content (don't escape/modify yet)
+        editorController.parseTextToDocument(fileNameLabel.getText(), content);
+        
         if (content != null && !content.isEmpty()) {
+            // Let the RenderView handle the HTML conversion
             String renderedContent = editorController.renderDocument();
             render.updateContent(renderedContent);
         }
-        else{
+        else {
             render.updateContent("<html><body><em>No content to render!</em></body></html>");
         }
     }

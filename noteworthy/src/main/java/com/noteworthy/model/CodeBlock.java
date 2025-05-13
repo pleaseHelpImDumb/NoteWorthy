@@ -18,13 +18,7 @@ public class CodeBlock implements ContentBlock{
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'length'");
     }
-
-    @Override
-    public void render() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'render'");
-    }
-
+    
     @Override
     public String getType() {
         // TODO Auto-generated method stub
