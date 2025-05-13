@@ -12,9 +12,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import javax.imageio.ImageIO;
+
 import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -27,14 +26,13 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JEditorPane;
-import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.undo.UndoManager;
 import javax.swing.event.UndoableEditEvent;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.text.BadLocationException;
+import javax.swing.undo.UndoManager;
 
 import com.formdev.flatlaf.FlatLightLaf;
 import com.noteworthy.controller.EditorController;
@@ -187,6 +185,36 @@ public class WindowView {
         fileMenu.add(quitItem);
 
         menuBar.add(fileMenu);
+        
+        // === Format Menu ===
+        JMenu formatMenu = new JMenu("Format");
+
+        // Bold
+        JMenuItem boldItem = new JMenuItem("Bold");
+        boldItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_B, InputEvent.META_DOWN_MASK));
+        boldItem.addActionListener(e -> wrapSelection("**", "**"));
+        formatMenu.add(boldItem);
+
+        // Italic
+        JMenuItem italicItem = new JMenuItem("Italic");
+        italicItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, InputEvent.META_DOWN_MASK));
+        italicItem.addActionListener(e -> wrapSelection("*", "*"));
+        formatMenu.add(italicItem);
+
+        // Underline (using HTML <u>…</u>)
+        JMenuItem underlineItem = new JMenuItem("Underline");
+        underlineItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, InputEvent.META_DOWN_MASK));
+        underlineItem.addActionListener(e -> wrapSelection("<u>", "</u>"));
+        formatMenu.add(underlineItem);
+
+        // Highlight (using ==…==)
+        JMenuItem highlightItem = new JMenuItem("Highlight");
+        highlightItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H,
+            InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK));
+        highlightItem.addActionListener(e -> wrapSelection("==", "=="));
+        formatMenu.add(highlightItem);
+
+        menuBar.add(formatMenu);
 
         JMenu viewMenu = new JMenu("View");
         JMenuItem renderItem = new JMenuItem("Render");
@@ -307,6 +335,21 @@ public class WindowView {
         fileChooser.setAcceptAllFileFilterUsed(false);
         return fileChooser;
     }
+
+    private void wrapSelection(String prefix, String suffix) {
+    int start = editor.getSelectionStart();
+    int end   = editor.getSelectionEnd();
+    if (start == end) return; // nothing selected
+    try {
+        String selected = editor.getDocument()
+                               .getText(start, end - start);
+        String replaced = prefix + selected + suffix;
+        editor.getDocument().remove(start, end - start);
+        editor.getDocument().insertString(start, replaced, null);
+    } catch (BadLocationException ex) {
+        ex.printStackTrace();
+    }
+}
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new WindowView());
