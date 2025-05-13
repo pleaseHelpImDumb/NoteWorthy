@@ -1,20 +1,24 @@
 package com.noteworthy.view;
 
-import javax.swing.*;
-import javax.swing.text.html.*;
-import org.scilab.forge.jlatexmath.TeXFormula;
-import org.scilab.forge.jlatexmath.TeXConstants;
-import org.scilab.forge.jlatexmath.TeXIcon;
-import java.awt.*;
+import java.awt.Graphics2D;
+import java.awt.Insets;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import javax.imageio.ImageIO;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.imageio.ImageIO;
+import javax.swing.JEditorPane;
+import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.html.StyleSheet;
+
+import org.scilab.forge.jlatexmath.TeXConstants;
+import org.scilab.forge.jlatexmath.TeXFormula;
+import org.scilab.forge.jlatexmath.TeXIcon;
+
 public class RenderView extends JEditorPane {
-    private File tempDir;
-    private Map<String, String> latexCache;
+    private final File tempDir;
+    private final Map<String, String> latexCache;
     
     public RenderView() {
         setContentType("text/html");
@@ -28,17 +32,8 @@ public class RenderView extends JEditorPane {
         // Configure HTMLEditorKit with proper styling
         HTMLEditorKit kit = new HTMLEditorKit();
         StyleSheet styleSheet = kit.getStyleSheet();
-        styleSheet.addRule("body { "
-            + "font-family: Sans-Serif; "
-            + "padding: 10px; "
-            + "margin: 0; "
-            + "line-height: 1.5; "
-            + "}");
-        styleSheet.addRule("img.latex { "
-            + "vertical-align: middle; "
-            + "margin: 5px 0; "
-            + "display: block; "
-            + "}");
+        styleSheet.addRule("body { font-family: Sans-Serif; padding: 10px; margin: 0; line-height: 1.5; }");
+        styleSheet.addRule("img.latex { vertical-align: middle; margin: 5px 0; display: block; }");
         setEditorKit(kit);
     }
 
@@ -62,7 +57,7 @@ public class RenderView extends JEditorPane {
         boolean isLatex = false;
         
         for (String part : parts) {
-            if (part.equals("$$")) {
+            if ("$$".equals(part)) {
                 isLatex = !isLatex;
                 continue;
             }
@@ -80,8 +75,17 @@ public class RenderView extends JEditorPane {
                     html.append("<span style='color:red'>[LaTeX Error]</span><br>");
                 }
             } else {
-                // Process plain text - preserve all formatting
-                html.append(escapeHtml(part).replace("\n", "<br>"));
+                // Process plain text with markdown-like formatting
+                String safe = escapeHtml(part).replace("\n", "<br>");
+                // Bold: **text**
+                safe = safe.replaceAll("\\*\\*(.+?)\\*\\*", "<strong>$1</strong>");
+                // Italic: *text*
+                safe = safe.replaceAll("\\*(.+?)\\*", "<em>$1</em>");
+                // Underline: __text__
+                safe = safe.replaceAll("__(.+?)__", "<u>$1</u>");
+                // Highlight: ==text==
+                safe = safe.replaceAll("==(.+?)==", "<mark>$1</mark>");
+                html.append(safe);
             }
         }
         
@@ -119,16 +123,16 @@ public class RenderView extends JEditorPane {
 
     private String escapeHtml(String text) {
         return text.replace("&", "&amp;")
-                  .replace("<", "&lt;")
-                  .replace(">", "&gt;");
+                   .replace("<", "&lt;")
+                   .replace(">", "&gt;");
     }
 
     private File createTempDirectory() {
         try {
-            File tempDir = File.createTempFile("noteworthy_", "");
-            tempDir.delete();
-            tempDir.mkdir();
-            return tempDir;
+            File temp = File.createTempFile("noteworthy_", "");
+            temp.delete();
+            temp.mkdir();
+            return temp;
         } catch (Exception e) {
             throw new RuntimeException("Could not create temp directory", e);
         }
