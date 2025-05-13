@@ -174,4 +174,10 @@ public class Document {
     public double getDefaultFontSize(){
         return this.defaultFontSize;
     }
+
+    public void debugPrintBlocks() {
+        for(int i = 0; i < blocks.size(); i++){
+            System.out.println("Type: " + blocks.get(i).getType() + " // Content: [" + blocks.get(i).getTextContent()+"]");
+        }
+    }
 }

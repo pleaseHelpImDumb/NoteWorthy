@@ -43,8 +43,7 @@ public class PlainTextBlock implements ContentBlock {
 
     @Override
     public String getType() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getType'");
+        return "[PlainText Block]";
     }
 
 }
