@@ -12,8 +12,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-
+import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -26,10 +27,14 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JEditorPane;
+import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.undo.UndoManager;
+import javax.swing.event.UndoableEditEvent;
 
 import com.formdev.flatlaf.FlatLightLaf;
 import com.noteworthy.controller.EditorController;
@@ -60,6 +65,12 @@ public class WindowView {
 
         // Editor View
         editor = new EditorView();
+        // Setup undo manager for editor
+        UndoManager undoManager = new UndoManager();
+        editor.getDocument().addUndoableEditListener((UndoableEditEvent e) -> {
+            undoManager.addEdit(e.getEdit());
+        });
+
         JPanel editorPanel = new JPanel(new BorderLayout());
         fileNameLabel = new JLabel("Untitled");
         fileNameLabel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
@@ -102,51 +113,26 @@ public class WindowView {
         JComponent root = window.getRootPane();
 
         // Save Hotkey (⌘+S)
-        KeyStroke saveKey = KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.META_DOWN_MASK);
-        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(saveKey, "saveNote");
-        root.getActionMap().put("saveNote", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                saveNoteToFile(window);
-            }
-        });
-
+        bindKey(root, KeyEvent.VK_S, InputEvent.META_DOWN_MASK, "saveNote", e -> saveNoteToFile(window));
         // Open File Hotkey (⌘+O)
-        KeyStroke openKey = KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.META_DOWN_MASK);
-        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(openKey, "openNote");
-        root.getActionMap().put("openNote", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                openFile(window);
-            }
-        });
-
+        bindKey(root, KeyEvent.VK_O, InputEvent.META_DOWN_MASK, "openNote", e -> openFile(window));
         // New File Hotkey (⌘+N) with prompt
-        KeyStroke newKey = KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.META_DOWN_MASK);
-        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(newKey, "newFile");
-        root.getActionMap().put("newFile", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (!confirmSaveIfNeeded()) return;
-                createNewFile();
-            }
-        });
-
+        bindKey(root, KeyEvent.VK_N, InputEvent.META_DOWN_MASK, "newFile", e -> { if (confirmSaveIfNeeded()) createNewFile(); });
         // Quit Hotkey (⌘+Q) with prompt
-        KeyStroke quitKey = KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.META_DOWN_MASK);
-        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(quitKey, "quitApp");
-        root.getActionMap().put("quitApp", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (!confirmSaveIfNeeded()) return;
-                System.exit(0);
-            }
-        });
+        bindKey(root, KeyEvent.VK_Q, InputEvent.META_DOWN_MASK, "quitApp", e -> { if (confirmSaveIfNeeded()) System.exit(0); });
+        // Undo (⌘+Z)
+        bindKey(root, KeyEvent.VK_Z, InputEvent.META_DOWN_MASK, "undo", e -> { if (undoManager.canUndo()) undoManager.undo(); });
+        // Redo (⌘+Shift+Z)
+        bindKey(root, KeyEvent.VK_Z, InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK, "redo", e -> { if (undoManager.canRedo()) undoManager.redo(); });
+        // Select All (⌘+A)
+        bindKey(root, KeyEvent.VK_A, InputEvent.META_DOWN_MASK, "selectAll", e -> editor.selectAll());
+        // Copy (⌘+C)
+        bindKey(root, KeyEvent.VK_C, InputEvent.META_DOWN_MASK, "copy", e -> editor.copy());
+        // Paste (⌘+V)
+        bindKey(root, KeyEvent.VK_V, InputEvent.META_DOWN_MASK, "paste", e -> editor.paste());
 
         // Schedule autosave
-        Timer autosaveTimer = new Timer(AUTOSAVE_INTERVAL, ae -> {
-            if (currentFile != null) saveNoteToFile(window);
-        });
+        Timer autosaveTimer = new Timer(AUTOSAVE_INTERVAL, ae -> { if (currentFile != null) saveNoteToFile(window); });
         autosaveTimer.setRepeats(true);
         autosaveTimer.start();
 
@@ -164,15 +150,21 @@ public class WindowView {
             : new EditorController(fileNameLabel.getText());
     }
 
+    private void bindKey(JComponent comp, int keyCode, int modifiers, String name, ActionListenerImpl action) {
+        KeyStroke ks = KeyStroke.getKeyStroke(keyCode, modifiers);
+        comp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(ks, name);
+        comp.getActionMap().put(name, new AbstractAction() { public void actionPerformed(ActionEvent e) { action.handle(e); } });
+    }
+
+    private interface ActionListenerImpl { void handle(ActionEvent e); }
+
     private JMenuBar createMenuBar() {
         JMenuBar menuBar = new JMenuBar();
         JMenu fileMenu = new JMenu("File");
 
         JMenuItem newFileItem = new JMenuItem("New File");
         newFileItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.META_DOWN_MASK));
-        newFileItem.addActionListener(e -> {
-            if (confirmSaveIfNeeded()) createNewFile();
-        });
+        newFileItem.addActionListener(e -> { if (confirmSaveIfNeeded()) createNewFile(); });
         fileMenu.add(newFileItem);
 
         JMenuItem openItem = new JMenuItem("Open...");
@@ -191,9 +183,7 @@ public class WindowView {
 
         JMenuItem quitItem = new JMenuItem("Quit");
         quitItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.META_DOWN_MASK));
-        quitItem.addActionListener(e -> {
-            if (confirmSaveIfNeeded()) System.exit(0);
-        });
+        quitItem.addActionListener(e -> { if (confirmSaveIfNeeded()) System.exit(0); });
         fileMenu.add(quitItem);
 
         menuBar.add(fileMenu);
@@ -204,7 +194,6 @@ public class WindowView {
         renderItem.addActionListener(e -> renderDocument(editor));
         viewMenu.add(renderItem);
         menuBar.add(viewMenu);
-
         return menuBar;
     }
 
