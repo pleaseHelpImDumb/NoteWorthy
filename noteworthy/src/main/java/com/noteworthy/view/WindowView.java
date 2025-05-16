@@ -12,9 +12,13 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.swing.AbstractAction;
+import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -24,6 +28,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
@@ -46,6 +51,8 @@ public class WindowView {
     private final RenderView render;
     private final JLabel fileNameLabel;
     private EditorController editorController;
+    private ArrayList<String> codeLanguages;
+    private String defaultLanguage = "Java";
 
     // Autosave interval in milliseconds (e.g., 5 minutes)
     private static final int AUTOSAVE_INTERVAL = 5 * 60 * 1000;
@@ -56,10 +63,10 @@ public class WindowView {
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window.setSize(1200, 800);
 
-        // Folder View
-        folders = new FolderView();
-        JScrollPane folderView = new JScrollPane(folders);
-        folderView.setPreferredSize(new Dimension(200, Short.MAX_VALUE));
+        //Add languages
+        codeLanguages = new ArrayList<String>();
+        codeLanguages.add("Java");
+        codeLanguages.add("JavaScript");
 
         // Editor View
         editor = new EditorView();
@@ -68,6 +75,11 @@ public class WindowView {
         editor.getDocument().addUndoableEditListener((UndoableEditEvent e) -> {
             undoManager.addEdit(e.getEdit());
         });
+
+        // Folder View
+        folders = new FolderView("notes", this);
+        JScrollPane folderView = new JScrollPane(folders);
+        folderView.setPreferredSize(new Dimension(200, Short.MAX_VALUE));
 
         JPanel editorPanel = new JPanel(new BorderLayout());
         fileNameLabel = new JLabel("Untitled");
@@ -110,24 +122,26 @@ public class WindowView {
         // Root pane for hotkeys
         JComponent root = window.getRootPane();
 
+
+        //Change to ctrl
         // Save Hotkey (⌘+S)
-        bindKey(root, KeyEvent.VK_S, InputEvent.META_DOWN_MASK, "saveNote", e -> saveNoteToFile(window));
+        bindKey(root, KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK, "saveNote", e -> saveNoteToFile(window));
         // Open File Hotkey (⌘+O)
-        bindKey(root, KeyEvent.VK_O, InputEvent.META_DOWN_MASK, "openNote", e -> openFile(window));
+        bindKey(root, KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK, "openNote", e -> openFile(window));
         // New File Hotkey (⌘+N) with prompt
-        bindKey(root, KeyEvent.VK_N, InputEvent.META_DOWN_MASK, "newFile", e -> { if (confirmSaveIfNeeded()) createNewFile(); });
+        bindKey(root, KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK, "newFile", e -> { if (confirmSaveIfNeeded()) createNewFile(); });
         // Quit Hotkey (⌘+Q) with prompt
-        bindKey(root, KeyEvent.VK_Q, InputEvent.META_DOWN_MASK, "quitApp", e -> { if (confirmSaveIfNeeded()) System.exit(0); });
+        bindKey(root, KeyEvent.VK_Q, InputEvent.CTRL_DOWN_MASK, "quitApp", e -> { if (confirmSaveIfNeeded()) System.exit(0); });
         // Undo (⌘+Z)
-        bindKey(root, KeyEvent.VK_Z, InputEvent.META_DOWN_MASK, "undo", e -> { if (undoManager.canUndo()) undoManager.undo(); });
+        bindKey(root, KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK, "undo", e -> { if (undoManager.canUndo()) undoManager.undo(); });
         // Redo (⌘+Shift+Z)
-        bindKey(root, KeyEvent.VK_Z, InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK, "redo", e -> { if (undoManager.canRedo()) undoManager.redo(); });
+        bindKey(root, KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK, "redo", e -> { if (undoManager.canRedo()) undoManager.redo(); });
         // Select All (⌘+A)
-        bindKey(root, KeyEvent.VK_A, InputEvent.META_DOWN_MASK, "selectAll", e -> editor.selectAll());
+        bindKey(root, KeyEvent.VK_A, InputEvent.CTRL_DOWN_MASK, "selectAll", e -> editor.selectAll());
         // Copy (⌘+C)
-        bindKey(root, KeyEvent.VK_C, InputEvent.META_DOWN_MASK, "copy", e -> editor.copy());
+        bindKey(root, KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK, "copy", e -> editor.copy());
         // Paste (⌘+V)
-        bindKey(root, KeyEvent.VK_V, InputEvent.META_DOWN_MASK, "paste", e -> editor.paste());
+        bindKey(root, KeyEvent.VK_V, InputEvent.CTRL_DOWN_MASK, "paste", e -> editor.paste());
 
         // Schedule autosave
         Timer autosaveTimer = new Timer(AUTOSAVE_INTERVAL, ae -> { if (currentFile != null) saveNoteToFile(window); });
@@ -161,17 +175,17 @@ public class WindowView {
         JMenu fileMenu = new JMenu("File");
 
         JMenuItem newFileItem = new JMenuItem("New File");
-        newFileItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.META_DOWN_MASK));
+        newFileItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK));
         newFileItem.addActionListener(e -> { if (confirmSaveIfNeeded()) createNewFile(); });
         fileMenu.add(newFileItem);
 
         JMenuItem openItem = new JMenuItem("Open...");
-        openItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.META_DOWN_MASK));
+        openItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK));
         openItem.addActionListener(e -> openFile(window));
         fileMenu.add(openItem);
 
         JMenuItem saveItem = new JMenuItem("Save");
-        saveItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.META_DOWN_MASK));
+        saveItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK));
         saveItem.addActionListener(e -> saveNoteToFile(window));
         fileMenu.add(saveItem);
 
@@ -180,7 +194,7 @@ public class WindowView {
         fileMenu.add(saveAsItem);
 
         JMenuItem quitItem = new JMenuItem("Quit");
-        quitItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.META_DOWN_MASK));
+        quitItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_DOWN_MASK));
         quitItem.addActionListener(e -> { if (confirmSaveIfNeeded()) System.exit(0); });
         fileMenu.add(quitItem);
 
@@ -191,38 +205,89 @@ public class WindowView {
 
         // Bold
         JMenuItem boldItem = new JMenuItem("Bold");
-        boldItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_B, InputEvent.META_DOWN_MASK));
+        boldItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_B, InputEvent.CTRL_DOWN_MASK));
         boldItem.addActionListener(e -> wrapSelection("**", "**"));
         formatMenu.add(boldItem);
 
         // Italic
         JMenuItem italicItem = new JMenuItem("Italic");
-        italicItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, InputEvent.META_DOWN_MASK));
+        italicItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, InputEvent.CTRL_DOWN_MASK));
         italicItem.addActionListener(e -> wrapSelection("*", "*"));
         formatMenu.add(italicItem);
 
         // Underline (using HTML <u>…</u>)
         JMenuItem underlineItem = new JMenuItem("Underline");
-        underlineItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, InputEvent.META_DOWN_MASK));
-        underlineItem.addActionListener(e -> wrapSelection("<u>", "</u>"));
+        underlineItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, InputEvent.CTRL_DOWN_MASK));
+        underlineItem.addActionListener(e -> wrapSelection("__", "__"));
         formatMenu.add(underlineItem);
 
+        /* This functionality might not work with the render stuff in jav 
         // Highlight (using ==…==)
         JMenuItem highlightItem = new JMenuItem("Highlight");
-        highlightItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H,
-            InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK));
-        highlightItem.addActionListener(e -> wrapSelection("==", "=="));
+        highlightItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H, InputEvent.CTRL_DOWN_MASK));
+        highlightItem.addActionListener(e -> wrapSelection("<mark>", "</mark>"));
         formatMenu.add(highlightItem);
+        */
+
+        //Equation
+        JMenuItem equationItem = new JMenuItem("LaTeX");
+        equationItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.CTRL_DOWN_MASK));
+        equationItem.addActionListener(e -> wrapSelection("$$", "$$"));
+        formatMenu.add(equationItem);
+
+        //Code
+        JMenuItem codeItem = new JMenuItem("Code");
+        codeItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, InputEvent.CTRL_DOWN_MASK));
+        codeItem.addActionListener(e -> wrapSelection("```\n", "\n```"));
+        formatMenu.add(codeItem);
+    
 
         menuBar.add(formatMenu);
 
+        //View/Render menu
         JMenu viewMenu = new JMenu("View");
         JMenuItem renderItem = new JMenuItem("Render");
         renderItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_DOWN_MASK));
         renderItem.addActionListener(e -> renderDocument(editor));
         viewMenu.add(renderItem);
         menuBar.add(viewMenu);
+        
+        //Code language selection
+        JMenu codeLanguage = new JMenu("Code");
+        ButtonGroup langs = new ButtonGroup();
+        for (String language : codeLanguages){
+            JRadioButtonMenuItem langItem = new JRadioButtonMenuItem(language);
+            langs.add(langItem);
+            codeLanguage.add(langItem);
+
+            if(language.equals(defaultLanguage)) {
+                langItem.setSelected(true);
+            }
+
+            langItem.addActionListener(e -> {
+            AbstractButton button = (AbstractButton) e.getSource();
+            defaultLanguage = button.getText();
+            System.out.println("Selected language: " + defaultLanguage); // Optional: For debugging 
+            });
+        }
+        menuBar.add(codeLanguage);
+
+        // About menu
+        JMenu aboutMenu = new JMenu("Help");
+        JMenuItem aboutItem = new JMenuItem("About");
+        aboutItem.addActionListener(e -> showAboutDialog());
+        aboutMenu.add(aboutItem);
+        menuBar.add(aboutMenu);
+
         return menuBar;
+    }
+
+    private void showAboutDialog() {
+        String message = "Note Worthy\n" +
+        "Version 1.0\n" +
+        "Created for SUNY Old Westbury's Spring 2025 Software Engineering Class\n" +
+        "Team members: Adrian, Jackson, Mike";
+        JOptionPane.showMessageDialog(window, message, "About", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private boolean confirmSaveIfNeeded() {
@@ -243,22 +308,23 @@ public class WindowView {
         return true;
     }
 
+    //RENDER FUNCTION
     private void renderDocument(EditorView editedDoc) {
         String content = editedDoc.getText();
+        //PARSE INTO BLOCKS & ADD TO DOCUMENT
         editorController.parseTextToDocument(fileNameLabel.getText(), content);
         if (content != null && !content.isEmpty()) {
-            render.updateContent(editorController.renderDocument());
+            render.updateContent(editorController.renderDocument(), defaultLanguage);
         } else {
-            render.updateContent("<html><body><em>No content to render!</em></body></html>");
+            render.updateContent("**No content to render!**");
         }
     }
 
-    private String escapeHTML(String text) {
-        return text.replace("&", "&amp;")
-                   .replace("<", "&lt;")
-                   .replace(">", "&gt;");
+    //Updates current file for FolderTreeView saving/creation
+    public void updateCurrentFile(File newFile){
+        this.currentFile = newFile;
     }
-
+    
     private void saveNoteToFile(JFrame parentFrame) {
         try {
             if (currentFile == null) {
@@ -300,6 +366,13 @@ public class WindowView {
             editor.setText(readFileContent(currentFile));
             editorController.parseTextToDocument(fileNameLabel.getText(), editor.getText());
         }
+    }
+
+    public void folderTreeOpenFile(File openFile){
+        currentFile = openFile;
+        updateFileNameLabel();
+        editor.setText(readFileContent(currentFile));
+        editorController.parseTextToDocument(fileNameLabel.getText(), editor.getText());
     }
 
     private String readFileContent(File file) {

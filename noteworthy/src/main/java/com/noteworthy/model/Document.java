@@ -149,7 +149,7 @@ public class Document {
             }
             else if (indexedBlock instanceof CodeBlock){
                 CodeBlock codeBlock = (CodeBlock) indexedBlock;
-                documentContent = documentContent.concat("\n" + codeBlock.getCode());
+                documentContent = documentContent.concat("\n" + codeBlock.getTextContent());
             }
         }
         return documentContent;

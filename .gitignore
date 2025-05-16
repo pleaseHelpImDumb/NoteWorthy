@@ -1,0 +1,38 @@
+# Ignore all content in the notes folder (user data)
+/notes/**
+
+# Maven build directory
+/target/
+
+# IDE-specific files
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+.vscode/
+
+# Compiled class files
+*.class
+
+# Log files
+*.log
+
+# Package files
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Virtual machine crash logs
+hs_err_pid*
+
+# macOS specific files
+.DS_Store
+
+# Windows specific files
+Thumbs.db
+ehthumbs.db
+*.lnk
