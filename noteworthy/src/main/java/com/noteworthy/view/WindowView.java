@@ -2,8 +2,10 @@ package com.noteworthy.view;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -37,6 +39,7 @@ import javax.swing.Timer;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.JTextComponent;
 import javax.swing.undo.UndoManager;
 
 import com.formdev.flatlaf.FlatLightLaf;
@@ -240,8 +243,12 @@ public class WindowView {
         codeItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, InputEvent.CTRL_DOWN_MASK));
         codeItem.addActionListener(e -> wrapSelection("```\n", "\n```"));
         formatMenu.add(codeItem);
-    
 
+        //Image
+        JMenuItem insertImage = new JMenuItem("Insert Image");
+        insertImage.addActionListener(e -> insertImage());
+        formatMenu.add(insertImage);
+    
         menuBar.add(formatMenu);
 
         //View/Render menu
@@ -280,6 +287,33 @@ public class WindowView {
         menuBar.add(aboutMenu);
 
         return menuBar;
+    }
+
+    private void insertImage(){
+        String imgPath = getImagePath(window);  //get img path
+        if (!imgPath.isEmpty()){
+            String content = editor.getText() + "\n" + imgPath+"\n"; //set document content + img path
+            editorController.parseTextToDocument(fileNameLabel.getText(), content); //parse content + img into document
+            editor.setText(content);
+            render.updateContent(editorController.renderDocument(), defaultLanguage);
+        }
+        else {
+            JOptionPane.showMessageDialog(window, "Could not find file.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    private String getImagePath(JFrame parent) {
+        JFileChooser fileChooser = new JFileChooser();
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("Image Files", "jpg", "jpeg", "png", "gif", "bmp");
+        fileChooser.setFileFilter(filter);
+        System.out.println("openDialog");
+        int result = fileChooser.showOpenDialog(parent); // 'this' refers to your frame/component
+        if (result == JFileChooser.APPROVE_OPTION) {
+            // Get the selected file
+            File selectedFile = fileChooser.getSelectedFile();
+            System.out.println("Selected image: " + selectedFile.getAbsolutePath());
+            return selectedFile.getAbsolutePath();
+        }
+        else return "";
     }
 
     private void showAboutDialog() {
@@ -410,19 +444,19 @@ public class WindowView {
     }
 
     private void wrapSelection(String prefix, String suffix) {
-    int start = editor.getSelectionStart();
-    int end   = editor.getSelectionEnd();
-    if (start == end) return; // nothing selected
-    try {
-        String selected = editor.getDocument()
-                               .getText(start, end - start);
-        String replaced = prefix + selected + suffix;
-        editor.getDocument().remove(start, end - start);
-        editor.getDocument().insertString(start, replaced, null);
-    } catch (BadLocationException ex) {
-        ex.printStackTrace();
+        int start = editor.getSelectionStart();
+        int end   = editor.getSelectionEnd();
+        if (start == end) return; // nothing selected
+        try {
+            String selected = editor.getDocument()
+                                .getText(start, end - start);
+            String replaced = prefix + selected + suffix;
+            editor.getDocument().remove(start, end - start);
+            editor.getDocument().insertString(start, replaced, null);
+        } catch (BadLocationException ex) {
+            ex.printStackTrace();
+        }
     }
-}
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new WindowView());

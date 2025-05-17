@@ -141,7 +141,7 @@ public class Document {
             }
             else if (indexedBlock instanceof ImageBlock){
                 ImageBlock imgBlock = (ImageBlock) indexedBlock;
-                documentContent = documentContent.concat("\n" + imgBlock.getCaption());
+                documentContent = documentContent.concat("\n" + imgBlock.getTextContent());
             }
             else if (indexedBlock instanceof LaTeXBlock){
                 LaTeXBlock latexBlock = (LaTeXBlock) indexedBlock;

@@ -2,27 +2,34 @@ package com.noteworthy.model;
 
 public class ImageBlock implements ContentBlock {
 
-    public String getCaption() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getCaption'");
+
+    private String imgPath;
+
+    public ImageBlock(){
+        imgPath = "";
+    }
+
+    public ImageBlock(String path){
+        imgPath = path;
+    }
+
+    public String getCaption(){
+       return "[Image Block]";
     }
 
     @Override
     public String getTextContent() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getTextContent'");
+        return imgPath;
     }
 
     @Override
     public int length() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'length'");
+        return imgPath.length();
     }
 
     @Override
     public String getType() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getType'");
+        return "[Image Block]";
     }
     
 }

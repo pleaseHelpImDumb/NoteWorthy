@@ -5,6 +5,11 @@ import java.util.regex.*;
 public class DocumentManager {
     private static final Pattern LATEX_PATTERN = Pattern.compile("\\$\\$(.*?)\\$\\$", Pattern.DOTALL);
     private static final Pattern CODE_BLOCK_PATTERN = Pattern.compile("```(.*?)```", Pattern.DOTALL);
+    private static final Pattern FILE_PATH_PATTERN = Pattern.compile(
+        "(?:[A-Za-z]:\\\\[^\\n]+\\.(jpg|jpeg|png|gif|bmp)|" +  // Windows paths
+        "(?:/|~)[^\\n]+\\.(jpg|jpeg|png|gif|bmp))",            // Unix paths
+        Pattern.CASE_INSENSITIVE
+    );
    
     public Document parseTextToDocument(String title, String textContent) {
         Document doc = new Document(title);
@@ -27,8 +32,13 @@ public class DocumentManager {
             codeMatcher.region(currentPos, content.length());
             boolean foundCode = codeMatcher.find();
             
+            // Find the next Image file path
+            Matcher pathMatcher = FILE_PATH_PATTERN.matcher(content);
+            pathMatcher.region(currentPos, content.length());
+            boolean foundPath = pathMatcher.find();
+
             // If we found neither special block, add the rest as plain text and exit
-            if (!foundLatex && !foundCode) {
+            if (!foundLatex && !foundCode && !foundPath) {
                 String remainingText = content.substring(currentPos);
                 if (!remainingText.isEmpty()) {
                     doc.appendBlock(new PlainTextBlock(remainingText));
@@ -39,8 +49,9 @@ public class DocumentManager {
             // Determine which special block comes first
             int latexPos = foundLatex ? latexMatcher.start() : Integer.MAX_VALUE;
             int codePos = foundCode ? codeMatcher.start() : Integer.MAX_VALUE;
+            int pathPos = foundPath ? pathMatcher.start() : Integer.MAX_VALUE;
             
-            if (latexPos < codePos) {
+            if (latexPos < codePos && latexPos < pathPos) {
                 // LaTeX block comes first
                 
                 // Add plain text before the LaTeX block if any
@@ -55,7 +66,8 @@ public class DocumentManager {
                 
                 // Update position
                 currentPos = latexMatcher.end();
-            } else {
+            } 
+            else if (codePos < latexPos && codePos < pathPos) {
                 // Code block comes first
                 
                 // Add plain text before the code block if any
@@ -70,6 +82,22 @@ public class DocumentManager {
                 
                 // Update position
                 currentPos = codeMatcher.end();
+            }
+            else {
+                // Image path comes first
+                
+                // Add plain text before the image path if any
+                if (pathPos > currentPos) {
+                    String plainText = content.substring(currentPos, pathPos);
+                    doc.appendBlock(new PlainTextBlock(plainText));
+                }
+                
+                // Add the image block with the full path
+                String imagePath = pathMatcher.group(0);
+                doc.appendBlock(new ImageBlock(imagePath));
+                
+                // Update position
+                currentPos = pathMatcher.end();
             }
         }
     }

@@ -23,6 +23,12 @@ public class RenderView extends JEditorPane {
     private final Map<String, String> latexCache;
     private static final Pattern CODE_BLOCK_PATTERN = 
         Pattern.compile("```([^\\n]*)?\\n([\\s\\S]*?)\\n```", Pattern.MULTILINE);
+    private static final Pattern IMAGE_PATH_PATTERN = Pattern.compile(
+        "(?:[A-Za-z]:\\\\[^\\s]+\\.(jpg|jpeg|png|gif|bmp)|" +  // Windows paths
+        "(?:/|~)[^\\s]+\\.(jpg|jpeg|png|gif|bmp))",            // Unix paths
+        Pattern.CASE_INSENSITIVE
+    );
+
     private String codeLanguage = "Java";
     
         public RenderView() {
@@ -39,6 +45,8 @@ public class RenderView extends JEditorPane {
             StyleSheet styleSheet = kit.getStyleSheet();
             styleSheet.addRule("body { font-family: Sans-Serif; padding: 10px; margin: 0; line-height: 1.5; }");
             styleSheet.addRule("img.latex { vertical-align: middle; margin: 5px 0; display: block; }");
+            //styleSheet.addRule("img.embedded { max-width: 95%; margin: 10px 0; display: block; width: 300px;}");
+        
             
             // Add code block styling
             styleSheet.addRule("pre.code { " +
@@ -67,6 +75,7 @@ public class RenderView extends JEditorPane {
                 "}");
                 
             // Add language-specific highlighting (just basic colors for now)
+            /* 
             styleSheet.addRule("pre.code-java .keyword { color: #7f0055; font-weight: bold; }");
             styleSheet.addRule("pre.code-java .string { color: #2a00ff; }");
             styleSheet.addRule("pre.code-java .comment { color: #3f7f5f; }");
@@ -74,6 +83,7 @@ public class RenderView extends JEditorPane {
             styleSheet.addRule("pre.code-javascript .keyword { color: #0000ff; font-weight: bold; }");
             styleSheet.addRule("pre.code-javascript .string { color: #008000; }");
             styleSheet.addRule("pre.code-javascript .comment { color: #808080; }");
+            */
             
             setEditorKit(kit);
         }
@@ -116,6 +126,25 @@ public class RenderView extends JEditorPane {
         codeBlockMatcher.appendTail(sb);
         content = sb.toString();
         
+        // Process image paths and replace with placeholders
+        Map<String, String> imageReplacements = new HashMap<>();
+        Matcher imagePathMatcher = IMAGE_PATH_PATTERN.matcher(content);
+        sb = new StringBuffer();
+        int imageCount = 0;
+        
+        while (imagePathMatcher.find()) {
+            String imagePath = imagePathMatcher.group(0);
+            String placeholder = "IMAGE_" + imageCount + "_PLACEHOLDER";
+            imageCount++;
+            
+            // Create HTML img tag for the image path
+            String imgTag = renderImagePath(imagePath);
+            imageReplacements.put(placeholder, imgTag);
+            imagePathMatcher.appendReplacement(sb, placeholder);
+        }
+        imagePathMatcher.appendTail(sb);
+        content = sb.toString();
+
         StringBuilder html = new StringBuilder("<html><body>");
         
         // Split content while handling LaTeX blocks
@@ -129,14 +158,13 @@ public class RenderView extends JEditorPane {
             }
             
             if (isLatex) {
-                // Process LaTeX content
                 try {
                     String latexImage = renderLatexToImage(part.trim());
                     html.append("<img class='latex' src='")
                        .append(latexImage)
                        .append("' alt='")
                        .append(escapeHtml(part))
-                       .append("'/><br>");  // Explicit <br> after LaTeX
+                       .append("'/>");
                 } catch (Exception e) {
                     html.append("<span style='color:red'>[LaTeX Error: ")
                         .append(escapeHtml(e.getMessage()))
@@ -145,18 +173,18 @@ public class RenderView extends JEditorPane {
             } else {
                 // Process plain text with markdown-like formatting
                 String safe = escapeHtml(part).replace("\n", "<br>");
-                
-                // Bold: **text**
                 safe = safe.replaceAll("\\*\\*(.+?)\\*\\*", "<strong>$1</strong>");
-                // Italic: *text*
                 safe = safe.replaceAll("\\*(.+?)\\*", "<em>$1</em>");
-                // Underline: __text__
                 safe = safe.replaceAll("__(.+?)__", "<u>$1</u>");
-                // Highlight: ==text==
-                safe = safe.replaceAll("==(.+?)==", "<mark>$1</mark>");
+
                 
                 // Restore code blocks from placeholders
                 for (Map.Entry<String, String> entry : codeBlockReplacements.entrySet()) {
+                    safe = safe.replace(entry.getKey(), entry.getValue());
+                }
+
+                // Restore image paths from placeholders
+                for (Map.Entry<String, String> entry : imageReplacements.entrySet()) {
                     safe = safe.replace(entry.getKey(), entry.getValue());
                 }
                 
@@ -167,7 +195,24 @@ public class RenderView extends JEditorPane {
         html.append("</body></html>");
         return html.toString();
     }
-    
+
+    /*
+     * Returns a String of an imagePath into an HTML element
+     */ 
+    private String renderImagePath(String imagePath) {
+        File imageFile = new File(imagePath);
+        String fileUrl;
+        
+        try {
+            fileUrl = imageFile.toURI().toURL().toString();
+        } catch (Exception e) {
+            fileUrl = imagePath;
+        }
+        
+        return "<img class='embedded' src='" + fileUrl + "' alt='Image: " 
+               + new File(imagePath).getName() + "'>";
+    }
+
     /**
      * Renders a code block with optional syntax highlighting
      */
