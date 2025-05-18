@@ -127,23 +127,23 @@ public class WindowView {
 
 
         //Change to ctrl
-        // Save Hotkey (⌘+S)
+        // Save Hotkey (CTRL + S)
         bindKey(root, KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK, "saveNote", e -> saveNoteToFile(window));
-        // Open File Hotkey (⌘+O)
+        // Open File Hotkey (CTRL + O)
         bindKey(root, KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK, "openNote", e -> openFile(window));
-        // New File Hotkey (⌘+N) with prompt
+        // New File Hotkey (CTRL + N) with prompt
         bindKey(root, KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK, "newFile", e -> { if (confirmSaveIfNeeded()) createNewFile(); });
-        // Quit Hotkey (⌘+Q) with prompt
+        // Quit Hotkey (CTRL + Q) with prompt
         bindKey(root, KeyEvent.VK_Q, InputEvent.CTRL_DOWN_MASK, "quitApp", e -> { if (confirmSaveIfNeeded()) System.exit(0); });
-        // Undo (⌘+Z)
+        // Undo (CTRL + Z)
         bindKey(root, KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK, "undo", e -> { if (undoManager.canUndo()) undoManager.undo(); });
-        // Redo (⌘+Shift+Z)
-        bindKey(root, KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK, "redo", e -> { if (undoManager.canRedo()) undoManager.redo(); });
-        // Select All (⌘+A)
+        // Redo (CTRL + Shift + Z)
+        bindKey(root, KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK, "redo", e -> { if (undoManager.canRedo()) undoManager.redo(); });
+        // Select All (CTRL + A)
         bindKey(root, KeyEvent.VK_A, InputEvent.CTRL_DOWN_MASK, "selectAll", e -> editor.selectAll());
-        // Copy (⌘+C)
+        // Copy (CTRL + C)
         bindKey(root, KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK, "copy", e -> editor.copy());
-        // Paste (⌘+V)
+        // Paste (CTRL + V)
         bindKey(root, KeyEvent.VK_V, InputEvent.CTRL_DOWN_MASK, "paste", e -> editor.paste());
 
         // Schedule autosave
