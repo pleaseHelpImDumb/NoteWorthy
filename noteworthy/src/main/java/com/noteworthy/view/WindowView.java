@@ -42,6 +42,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.JTextComponent;
 import javax.swing.undo.UndoManager;
 
+import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.noteworthy.controller.EditorController;
 
@@ -56,6 +57,7 @@ public class WindowView {
     private EditorController editorController;
     private ArrayList<String> codeLanguages;
     private String defaultLanguage = "Java";
+    private boolean isDarkMode = false;
 
     // Autosave interval in milliseconds (e.g., 5 minutes)
     private static final int AUTOSAVE_INTERVAL = 5 * 60 * 1000;
@@ -127,25 +129,26 @@ public class WindowView {
 
 
         //Change to ctrl
-        // Save Hotkey (⌘+S)
-        bindKey(root, KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK, "saveNote", e -> saveNoteToFile(window));
-        // Open File Hotkey (⌘+O)
-        bindKey(root, KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK, "openNote", e -> openFile(window));
-        // New File Hotkey (⌘+N) with prompt
-        bindKey(root, KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK, "newFile", e -> { if (confirmSaveIfNeeded()) createNewFile(); });
-        // Quit Hotkey (⌘+Q) with prompt
-        bindKey(root, KeyEvent.VK_Q, InputEvent.CTRL_DOWN_MASK, "quitApp", e -> { if (confirmSaveIfNeeded()) System.exit(0); });
-        // Undo (⌘+Z)
-        bindKey(root, KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK, "undo", e -> { if (undoManager.canUndo()) undoManager.undo(); });
-        // Redo (⌘+Shift+Z)
-        bindKey(root, KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK, "redo", e -> { if (undoManager.canRedo()) undoManager.redo(); });
-        // Select All (⌘+A)
-        bindKey(root, KeyEvent.VK_A, InputEvent.CTRL_DOWN_MASK, "selectAll", e -> editor.selectAll());
-        // Copy (⌘+C)
-        bindKey(root, KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK, "copy", e -> editor.copy());
-        // Paste (⌘+V)
-        bindKey(root, KeyEvent.VK_V, InputEvent.CTRL_DOWN_MASK, "paste", e -> editor.paste());
 
+
+        // Save Hotkey (CTRL + S)
+        bindKey(root, KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK, "saveNote", e -> saveNoteToFile(window));
+        // Open File Hotkey (CTRL + O)
+        bindKey(root, KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK, "openNote", e -> openFile(window));
+        // New File Hotkey (CTRL + N) with prompt
+        bindKey(root, KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK, "newFile", e -> { if (confirmSaveIfNeeded()) createNewFile(); });
+        // Quit Hotkey (CTRL + Q) with prompt
+        bindKey(root, KeyEvent.VK_Q, InputEvent.CTRL_DOWN_MASK, "quitApp", e -> { if (confirmSaveIfNeeded()) System.exit(0); });
+        // Undo (CTRL + Z)
+        bindKey(root, KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK, "undo", e -> { if (undoManager.canUndo()) undoManager.undo(); });
+        // Redo (CTRL + Shift + Z)
+        bindKey(root, KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK, "redo", e -> { if (undoManager.canRedo()) undoManager.redo(); });
+        // Select All (CTRL + SHIFT + A)
+        bindKey(root, KeyEvent.VK_A, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK, "selectAll", e -> editor.selectAll());
+        // Copy (CTRL + C)
+        bindKey(root, KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK, "copy", e -> editor.copy());
+        // Paste (CTRL + V)
+        bindKey(root, KeyEvent.VK_V, InputEvent.CTRL_DOWN_MASK, "paste", e -> editor.paste());
         // Schedule autosave
         Timer autosaveTimer = new Timer(AUTOSAVE_INTERVAL, ae -> { if (currentFile != null) saveNoteToFile(window); });
         autosaveTimer.setRepeats(true);
@@ -257,6 +260,10 @@ public class WindowView {
         renderItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_DOWN_MASK));
         renderItem.addActionListener(e -> renderDocument(editor));
         viewMenu.add(renderItem);
+        
+        JMenuItem themeToggleItem = new JMenuItem("Change Theme");
+        themeToggleItem.addActionListener(e -> toggleTheme());
+        viewMenu.add(themeToggleItem);
         menuBar.add(viewMenu);
         
         //Code language selection
@@ -314,6 +321,15 @@ public class WindowView {
             return selectedFile.getAbsolutePath();
         }
         else return "";
+    }
+    private void toggleTheme() {
+        if (isDarkMode) {
+            FlatLightLaf.setup();
+        } else {
+            FlatDarkLaf.setup();
+        }
+        isDarkMode = !isDarkMode;
+        SwingUtilities.updateComponentTreeUI(window);
     }
 
     private void showAboutDialog() {
