@@ -129,8 +129,6 @@ public class WindowView {
 
 
         //Change to ctrl
-
-
         // Save Hotkey (CTRL + S)
         bindKey(root, KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK, "saveNote", e -> saveNoteToFile(window));
         // Open File Hotkey (CTRL + O)
