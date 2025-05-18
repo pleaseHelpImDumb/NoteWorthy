@@ -1,13 +1,9 @@
 package com.noteworthy.model;
 
-import java.util.Map;
-
 public class PlainTextBlock implements ContentBlock {
     
     private String content;
-    private Map<String, Boolean> formatting;
-    private Map<String, Object> styles;
-    
+
     public PlainTextBlock(){
         this.content = "";
     }
@@ -31,20 +27,12 @@ public class PlainTextBlock implements ContentBlock {
 
     @Override
     public int length() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'length'");
-    }
-
-    @Override
-    public void render() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'render'");
+        return content.length();
     }
 
     @Override
     public String getType() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getType'");
+        return "[PlainText Block]";
     }
 
 }

@@ -141,7 +141,7 @@ public class Document {
             }
             else if (indexedBlock instanceof ImageBlock){
                 ImageBlock imgBlock = (ImageBlock) indexedBlock;
-                documentContent = documentContent.concat("\n" + imgBlock.getCaption());
+                documentContent = documentContent.concat("\n" + imgBlock.getTextContent());
             }
             else if (indexedBlock instanceof LaTeXBlock){
                 LaTeXBlock latexBlock = (LaTeXBlock) indexedBlock;
@@ -149,7 +149,7 @@ public class Document {
             }
             else if (indexedBlock instanceof CodeBlock){
                 CodeBlock codeBlock = (CodeBlock) indexedBlock;
-                documentContent = documentContent.concat("\n" + codeBlock.getCode());
+                documentContent = documentContent.concat("\n" + codeBlock.getTextContent());
             }
         }
         return documentContent;
@@ -173,5 +173,11 @@ public class Document {
 
     public double getDefaultFontSize(){
         return this.defaultFontSize;
+    }
+
+    public void debugPrintBlocks() {
+        for(int i = 0; i < blocks.size(); i++){
+            System.out.println("Type: " + blocks.get(i).getType() + " // Content: [" + blocks.get(i).getTextContent()+"]");
+        }
     }
 }

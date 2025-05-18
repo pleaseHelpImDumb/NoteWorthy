@@ -2,33 +2,30 @@ package com.noteworthy.model;
 
 public class LaTeXBlock implements ContentBlock{
 
+    private String equation;
+
+    public LaTeXBlock(String equation){
+        this.equation = equation;
+    }
+
     public String getEquation() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getEquation'");
+        return equation;
     }
 
     @Override
     public String getTextContent() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getTextContent'");
+        return equation;
     }
 
     @Override
     public int length() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'length'");
+        return equation.length();
     }
-
-    @Override
-    public void render() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'render'");
-    }
+    
 
     @Override
     public String getType() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getType'");
+        return "[LaTeX Block]";
     }
     
 }
