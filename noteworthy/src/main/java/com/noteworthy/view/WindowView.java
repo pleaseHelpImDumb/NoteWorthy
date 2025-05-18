@@ -139,8 +139,8 @@ public class WindowView {
         bindKey(root, KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK, "undo", e -> { if (undoManager.canUndo()) undoManager.undo(); });
         // Redo (CTRL + Shift + Z)
         bindKey(root, KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK, "redo", e -> { if (undoManager.canRedo()) undoManager.redo(); });
-        // Select All (CTRL + A)
-        bindKey(root, KeyEvent.VK_A, InputEvent.CTRL_DOWN_MASK, "selectAll", e -> editor.selectAll());
+        // Select All (CTRL + SHIFT + A)
+        bindKey(root, KeyEvent.VK_A, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK, "selectAll", e -> editor.selectAll());
         // Copy (CTRL + C)
         bindKey(root, KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK, "copy", e -> editor.copy());
         // Paste (CTRL + V)
