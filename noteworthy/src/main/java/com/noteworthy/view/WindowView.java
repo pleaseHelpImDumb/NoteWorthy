@@ -129,6 +129,8 @@ public class WindowView {
 
 
         //Change to ctrl
+
+
         // Save Hotkey (CTRL + S)
         bindKey(root, KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK, "saveNote", e -> saveNoteToFile(window));
         // Open File Hotkey (CTRL + O)
@@ -332,9 +334,9 @@ public class WindowView {
 
     private void showAboutDialog() {
         String message = "Note Worthy\n" +
-        "Version 1.0\n" +
+        "Version 1.1\n" +
         "Created for SUNY Old Westbury's Spring 2025 Software Engineering Class\n" +
-        "Team members: Adrian, Jackson, Mike";
+        "Team members: Adrian, Jackson, Mike, Robert";
         JOptionPane.showMessageDialog(window, message, "About", JOptionPane.INFORMATION_MESSAGE);
     }
 
